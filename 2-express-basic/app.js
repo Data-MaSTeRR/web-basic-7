@@ -38,4 +38,20 @@ app.post('/store-user', function(req, res) {
     res.send('<h1>Username stored!</h1>');
 });
 
+app.get('/users', function(req, res) {
+    // 파일 읽어오기 & JS형태로 변환
+    const filePath = path.join(__dirname, 'data', 'users.json'); // __dirname -> 프로젝트의 디렉터리 구조를 보유한 인스턴스 | root에서 순서대로
+    const fileData = fs.readFileSync(filePath); // plaintext
+    const existingUsers = JSON.parse(fileData); // plaintext -> JS
+
+    // for문으로 순환하며 html 리스트화
+    let responseData = '<ul>';
+    for (const user of existingUsers) {
+        responseData += `<li> + user + </li>`;
+    }
+    responseData += '</ul>';
+
+    res.send(responseData);
+})
+
 app.listen(3000)
