@@ -1,66 +1,119 @@
-# 📄 Express.js 서버 예제 README
+# 📄 Express.js + File System 앱 README (인사이트 버전)
 
-이 문서는 아래의 간단한 Express.js 서버 코드에 대한 설명과 실행 방법을 담고 있습니다.
-
----
-
-## 🚀 코드 예제
-
-```js
-const express = require('express');
-const app = express();
-
-// localhost:3000/currenttime
-app.get('/currenttime', function(req, res) {
-    res.send('<h1>' + new Date().toISOString() + '</h1>');
-});
-
-// localhost:3000/
-app.get('/', function(req, res) {
-    res.send('<h1>Hello World!</h1>');
-});
-
-app.listen(3000);
-```
+이 문서는 파일 시스템을 활용해 사용자를 저장하고 불러오는 Express.js 애플리케이션에 대한 상세한 설명과 실행 방법, 그리고 실무적인 인사이트를 담고 있습니다.
 
 ---
 
-## 📝 코드 설명
+## 🚀 코드 개요
 
-### 📦 모듈 로드 & 앱 생성
+📦 **주요 기능**
+
+* 사용자가 이름을 입력하여 제출 → `users.json` 파일에 저장
+* 저장된 사용자 목록을 읽어와 HTML 리스트로 출력
+
+---
+
+## 📜 코드 분석
+
+### 📦 모듈 로드
 
 ```js
+const fs = require('fs');
+const path = require('path');
 const express = require('express');
 const app = express();
 ```
 
-* Express 모듈을 불러와 `app` 인스턴스를 생성합니다.
-* `app`은 라우팅, 미들웨어 처리 등을 담당합니다.
+* `fs`: 파일 읽기/쓰기용 Node.js 표준 모듈
+* `path`: 디렉토리 경로를 OS에 맞게 처리
+* `express`: 웹 서버 프레임워크
 
 ---
 
-### 📍 라우트 설정
+### 📋 미들웨어 설정
+
+```js
+app.use(express.urlencoded({ extended: false }));
+```
+
+* HTML 폼 데이터(`application/x-www-form-urlencoded`)를 파싱해 `req.body`에 할당
+* `extended: false` → 단순한 key-value 데이터만 파싱 가능 (중첩 객체 필요시 true)
+
+---
+
+### 📝 라우트
 
 #### `/currenttime`
 
 ```js
-app.get('/currenttime', function(req, res) {
-    res.send('<h1>' + new Date().toISOString() + '</h1>');
+app.get('/currenttime', (req, res) => {
+  res.send('<h1>' + new Date().toISOString() + '</h1>');
 });
 ```
 
-✅ GET 요청 `/currenttime`에 현재 시간을 ISO 포맷으로 응답합니다.
-✅ 상태 코드는 기본적으로 `200 OK`가 설정됩니다.
+✅ 현재 시간 출력
+✅ 단순 라우트 구조 확인용
+
+---
 
 #### `/`
 
 ```js
-app.get('/', function(req, res) {
-    res.send('<h1>Hello World!</h1>');
+app.get('/', (req, res) => {
+  res.send('<form action="/store-user" method="POST">' +
+      '<label>Your Name</label>' +
+      '<input type="text" name="username">' +
+      '<button>Submit</button>' +
+      '</form>');
 });
 ```
 
-✅ GET 요청 `/`에 단순한 "Hello World!" 메시지를 응답합니다.
+✅ 사용자 이름을 입력받는 폼 렌더링
+✅ `POST /store-user`로 제출
+
+---
+
+#### `/store-user`
+
+```js
+app.post('/store-user', (req, res) => {
+  const userName = req.body.username;
+
+  const filePath = path.join(__dirname, 'data', 'users.json');
+  const fileData = fs.readFileSync(filePath);
+  const existingUsers = JSON.parse(fileData);
+  existingUsers.push(userName);
+  fs.writeFileSync(filePath, JSON.stringify(existingUsers));
+
+  res.send('<h1>Username stored!</h1>');
+});
+```
+
+✅ POST로 전달받은 이름을 `users.json`에 저장
+✅ 동기적 파일 처리 (`readFileSync`, `writeFileSync`)로 간단하지만 블로킹 발생 가능
+
+---
+
+#### `/users`
+
+```js
+app.get('/users', (req, res) => {
+  const filePath = path.join(__dirname, 'data', 'users.json');
+  const fileData = fs.readFileSync(filePath);
+  const existingUsers = JSON.parse(fileData);
+
+  let responseData = '<ul>';
+  for (const user of existingUsers) {
+    responseData += `<li>${user}</li>`;
+  }
+  responseData += '</ul>';
+
+  res.send(responseData);
+});
+```
+
+✅ 저장된 사용자 목록을 HTML 리스트로 렌더링
+✅ 파일에서 데이터를 동기식으로 읽고 JSON을 파싱
 
 ---
 
@@ -70,54 +123,67 @@ app.get('/', function(req, res) {
 app.listen(3000);
 ```
 
-✅ 포트 `3000`에서 서버를 실행하고 요청을 대기합니다.
-✅ `http://localhost:3000/` 또는 `http://127.0.0.1:3000/`로 접속 가능
+✅ 포트 `3000`에서 서버 시작
+✅ 브라우저에서 `http://localhost:3000` 접속
 
 ---
 
-## 💡 동작 원리 요약
+## 📖 주요 메서드 & 개념 요약
 
-1️⃣ `express()`로 서버 애플리케이션을 생성합니다.
-2️⃣ `app.get()`으로 라우트별 요청 핸들러를 등록합니다.
-3️⃣ `res.send()`로 응답을 전송하고 요청을 종료합니다.
-4️⃣ `app.listen()`으로 포트를 열고 서버를 실행합니다.
-
----
-
-## 📖 주요 메서드
-
-| 메서드                      | 설명                               |
-| ------------------------ | -------------------------------- |
-| `app.get(path, handler)` | GET 요청에 대해 라우트 처리                |
-| `res.send()`             | 클라이언트에 응답 전송 (HTML, JSON, 문자열 등) |
-| `app.listen(port)`       | 지정한 포트에서 서버 실행                   |
-
----
-
-## ⚠️ 참고사항
-
-* `res.send()`는 문자열, 버퍼, JSON 모두 전송 가능하며 Content-Type을 자동으로 설정합니다.
-* `res.send()` 후에는 반드시 요청이 종료됩니다. 이후에 다른 응답을 보내면 에러 발생합니다.
-* 라우트의 순서가 중요합니다. 먼저 정의된 라우트가 우선 매칭됩니다.
+| 코드                 | 설명                   |
+| ------------------ | -------------------- |
+| `fs.readFileSync`  | 파일을 읽어 문자열로 반환 (블로킹) |
+| `JSON.parse`       | JSON → JS 객체         |
+| `JSON.stringify`   | JS 객체 → JSON 문자열     |
+| `fs.writeFileSync` | 파일에 데이터 기록 (블로킹)     |
+| `path.join`        | OS별 경로 생성            |
+| `__dirname`        | 현재 파일이 위치한 디렉토리      |
 
 ---
 
 ## 📋 실행 방법
 
-1️⃣ Node.js와 npm이 설치돼 있어야 합니다.
-2️⃣ 프로젝트 폴더에서 `npm init -y`로 초기화
-3️⃣ `npm install express`로 Express 설치
-4️⃣ 위의 코드를 `app.js`에 작성
-5️⃣ 터미널에서 `node app.js` 실행
-6️⃣ 브라우저에서 `http://localhost:3000` 접속
+1️⃣ Node.js 설치
+2️⃣ 프로젝트 폴더 생성 후 `npm init -y`
+3️⃣ `npm install express`
+4️⃣ `data/users.json` 파일 생성 (초기 내용: `[]`)
+5️⃣ 위 코드를 `app.js`로 저장
+6️⃣ `node app.js` 실행
+7️⃣ 브라우저에서 `http://localhost:3000` 접속
 
 ---
 
-## 🌟 더 알아보기
+## 🌟 인사이트
 
-* [Express 공식 문서](https://expressjs.com/)
-* [MDN: Express 소개](https://developer.mozilla.org/en-US/docs/Learn/Server-side/Express_Nodejs/Introduction)
+✅ 동기식 파일 I/O(`fs.readFileSync`)는 블로킹되므로, 비동기(`fs.promises`)나 데이터베이스로 전환하는 것이 이상적입니다.
+✅ `users.json`은 단순한 배열 JSON이지만, 에러 발생 시 (`파일 없음`, `잘못된 JSON`) 앱이 크래시할 수 있으므로 예외처리 필요합니다.
+✅ `extended: false`는 `true`에 비해 보안성이 높지만, 중첩된 폼데이터가 필요하다면 `true`를 써야 합니다.
+✅ 파일을 계속 읽고 쓰므로 높은 동시 요청에서는 성능 저하가 큽니다 → DB나 캐싱 사용 권장
 
 ---
 
-📗 *Express를 이용해 빠르고 간단하게 웹 서버를 만드는 예제입니다. 유지보수를 위해 라우터 분리, 미들웨어, 에러 핸들링 등을 추가로 공부해보세요!*
+## 🔄 nodemon으로 개발 효율 높이기
+
+`nodemon`은 코드 변경 시 서버를 자동으로 재시작해줍니다.
+
+### 설치 & 실행
+
+```bash
+npm install -g nodemon
+nodemon app.js
+```
+
+✅ 코드 저장 → 서버 자동 재시작 → 빠른 피드백
+✅ 개발 시 필수 도구로 많이 사용됨
+
+---
+
+## ⚠️ 주의사항
+
+* 현재는 에러 핸들링 로직이 없고, 파일이 없거나 JSON 파싱에 실패하면 서버가 죽습니다.
+* 파일 경합(race condition) 문제나, 파일 크기 증가에 따른 성능 저하 가능
+* 실무에서는 반드시 데이터베이스로 교체 권장
+
+---
+
+📗 *이 프로젝트는 Express와 파일 시스템을 연동해 데이터를 저장하고 출력하는 기초적인 구조를 보여줍니다. 이후에는 비동기 로직, 에러 핸들링, DB 연동으로 발전시키면 더 탄탄한 애플리케이션을 만들 수 있습니다.*
