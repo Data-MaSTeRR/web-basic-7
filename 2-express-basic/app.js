@@ -1,3 +1,7 @@
+// file system 패키지
+const fs = require('fs');
+const path = require('path');
+
 // express 모듈을 불러와 app 인스턴스 생성
 const express = require('express');
 const app = express();
@@ -24,7 +28,13 @@ app.get('/', function(req, res) {
 // localhost:3000/store-user
 app.post('/store-user', function(req, res) {
     const userName = req.body.username;
-    console.log(userName);
+
+    const filePath = path.join(__dirname, 'data', 'users.json'); // __dirname -> 프로젝트의 디렉터리 구조를 보유한 인스턴스 | root에서 순서대로
+    const fileData = fs.readFileSync(filePath); // plaintext
+    const existingUsers = JSON.parse(fileData); // plaintext -> JS
+    existingUsers.push(userName); // 배열 안에 userName 추가
+    fs.writeFileSync(filePath, JSON.stringify(existingUsers)); // JS -> plaintext
+
     res.send('<h1>Username stored!</h1>');
 });
 
