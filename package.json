@@ -2,7 +2,7 @@
   "name": "node&express-basic",
   "version": "1.0.0",
   "description": "",
-  "main": "1-nodejs-only/app.js",
+  "main": "2-express-basic/app.js",
   "scripts": {
     "start": "nodemon app.js"
   },
