@@ -98,4 +98,9 @@ app.use(function (req, res) {
   res.render("404");
 });
 
+// 505 error 미들웨어
+app.use(function (err, req, res, next) {
+  res.render("500");
+});
+
 app.listen(3000);
