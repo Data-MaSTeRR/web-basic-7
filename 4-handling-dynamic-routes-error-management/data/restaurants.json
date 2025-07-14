@@ -1,9 +1,18 @@
 [
   {
     "address": "관문로 100",
-    "cuisine": "Café",
+    "cuisine": "카페",
     "description": "얼그레이 아이스 맛있음여",
+    "id": "r1",
     "name": "스타벅스 과천점",
     "website": "https://www.starbucks.co.kr/index.do"
+  },
+  {
+    "name": "버거킹 과천점",
+    "address": "별양로 10",
+    "cuisine": "햄버거",
+    "website": "https://www.burgerking.co.kr/",
+    "description": "와퍼 패티 추가하면 단백질 보충 개꿀~",
+    "id": "9268d382-d328-4c97-948b-4998b2aa5be3"
   }
 ]

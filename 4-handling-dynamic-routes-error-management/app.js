@@ -4,6 +4,8 @@ const path = require('path');
 const express = require('express')
 const app = express();
 
+const uuid = require('uuid');
+
 // express + EJS Template 사용 | 서버에서 HTML에 데이터 삽입 -> 페이지 렌더링 -> 클라이언트 (SSR)
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
@@ -32,6 +34,12 @@ app.get('/restaurants', function (req, res) {
         restaurants: storedRestaurants
     });
 })
+// 동적 라우트
+app.get('/restaurants/:id', function (req, res) {
+    const restaurantId = req.params.id;
+    res.render('restaurant-detail', { rid: restaurantId } );
+})
+
 
 // 추천 restaurant 입력
 app.get('/recommend', function (req, res) {
@@ -42,6 +50,9 @@ app.get('/recommend', function (req, res) {
 app.post('/recommend', function (req, res) {
     // requestBody 저장
     const restaurant = req.body;
+
+    // restaurant 객체에 고유 id 부여 | v4 -> 무작위, 고유성
+    restaurant.id = uuid.v4();
 
     // filePath에서 fileData json.parse 통해 읽어오기
     const filePath = path.join(__dirname, 'data', 'restaurants.json');
