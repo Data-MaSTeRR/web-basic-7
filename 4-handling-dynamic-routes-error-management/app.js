@@ -52,7 +52,7 @@ app.get("/restaurants/:id", function (req, res) {
   }
 
   // 레스토랑 못찾아서 for문 탈출 못한 경우 -> 404 error
-  res.render("404");
+  res.status(404).render("404");
 });
 
 // 추천 restaurant 입력
@@ -95,12 +95,12 @@ app.get("/about", function (req, res) {
 
 // 404 error 미들웨어 | 다른 경로에서 처리되지 못한 것 여기서 처리 -> 마지막 줄
 app.use(function (req, res) {
-  res.render("404");
+  res.status(404).render("404");
 });
 
 // 505 error 미들웨어
 app.use(function (err, req, res, next) {
-  res.render("500");
+  res.status(500).render("500");
 });
 
 app.listen(3000);
