@@ -2,9 +2,11 @@ const fs = require("fs");
 const path = require("path");
 
 const express = require("express");
-const app = express();
-
 const uuid = require("uuid");
+
+const restaurantData = require("./util/restaurant-data");
+
+const app = express();
 
 // express + EJS Template 사용 | 서버에서 HTML에 데이터 삽입 -> 페이지 렌더링 -> 클라이언트 (SSR)
 app.set("views", path.join(__dirname, "views"));
@@ -24,10 +26,8 @@ app.get("/", function (req, res) {
 
 // restaurants 목록
 app.get("/restaurants", function (req, res) {
-  // filePath에서 fileData json.parse 통해 읽어오기
-  const filePath = path.join(__dirname, "data", "restaurants.json");
-  const fileData = fs.readFileSync(filePath);
-  const storedRestaurants = JSON.parse(fileData);
+  // filePath에서 fileData json.parse 통해 읽어오기 /util/restaurant-data.js
+  const restaurants = restaurantData.getStoredRestaurants();
 
   res.render("restaurants", {
     numberOfRestaurants: storedRestaurants.length,
@@ -36,14 +36,12 @@ app.get("/restaurants", function (req, res) {
 });
 // 동적 라우트
 app.get("/restaurants/:id", function (req, res) {
-  // filePath에서 fileData json.parse 통해 읽어오기
-  const filePath = path.join(__dirname, "data", "restaurants.json");
-  const fileData = fs.readFileSync(filePath);
-  const storedRestaurants = JSON.parse(fileData);
+  // filePath에서 fileData json.parse 통해 읽어오기 /util/restaurant-data.js
+  const restaurants = restaurantData.getStoredRestaurants();
   const restaurantId = req.params.id; // URL의 ID
 
   // 레스토랑 배열 중 id가 같은 레스토랑 찾기
-  for (const restaurant of storedRestaurants) {
+  for (const restaurant of restaurants) {
     if (restaurantId === restaurant.id) {
       return res.render("restaurant-detail", {
         restaurant: restaurant,
@@ -68,16 +66,14 @@ app.post("/recommend", function (req, res) {
   // restaurant 객체에 고유 id 부여 | v4 -> 무작위, 고유성
   restaurant.id = uuid.v4();
 
-  // filePath에서 fileData json.parse 통해 읽어오기
-  const filePath = path.join(__dirname, "data", "restaurants.json");
-  const fileData = fs.readFileSync(filePath);
-  const storedRestaurants = JSON.parse(fileData);
+  // filePath에서 fileData json.parse 통해 읽어오기 /util/restaurant-data.js
+  const restaurants = restaurantData.getStoredRestaurants();
 
   // requestBody값 fileData에 저장
-  storedRestaurants.push(restaurant);
+  restaurants.push(restaurant);
 
-  // fileData에 JS 배열 plaintext화 해서 다시 저장
-  fs.writeFileSync(filePath, JSON.stringify(storedRestaurants));
+  // fileData에 JS 배열 plaintext화 해서 다시 저장 /util/restaurant-data.js
+  restaurantData.storeRestaurants(restaurants);
 
   // POST요청 후 confirm.html로 redirect
   res.redirect("/confirm");
