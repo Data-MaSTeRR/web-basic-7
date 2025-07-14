@@ -22,7 +22,12 @@ app.get('/', function (req, res) {
 
 // restaurants 목록
 app.get('/restaurants', function (req, res) {
-    res.render('restaurants');
+    // filePath에서 fileData json.parse 통해 읽어오기
+    const filePath = path.join(__dirname, 'data', 'restaurants.json');
+    const fileData = fs.readFileSync(filePath);
+    const storedRestaurants = JSON.parse(fileData);
+
+    res.render('restaurants', { numberOfRestaurants: storedRestaurants.length });
 })
 
 // 추천 restaurant 입력
