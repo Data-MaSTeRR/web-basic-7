@@ -93,4 +93,9 @@ app.get("/about", function (req, res) {
   res.render("about");
 });
 
+// 404 error 미들웨어 | 다른 경로에서 처리되지 못한 것 여기서 처리 -> 마지막 줄
+app.use(function (req, res) {
+  res.render("404");
+});
+
 app.listen(3000);
