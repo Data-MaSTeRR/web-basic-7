@@ -50,6 +50,9 @@ app.get("/restaurants/:id", function (req, res) {
       });
     }
   }
+
+  // 레스토랑 못찾아서 for문 탈출 못한 경우 -> 404 error
+  res.render("404");
 });
 
 // 추천 restaurant 입력
