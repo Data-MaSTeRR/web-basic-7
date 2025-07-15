@@ -7,12 +7,36 @@ const router = express.Router();
 
 // restaurants 목록
 router.get("/restaurants", function (req, res) {
+  // query 매개변수로 order를 가져옴
+  let order = req.query.order;
+  let nextOrder = "desc";
+  // order query 매개변수가 없으면, 기본값으로 asc
+  if (order !== "asc" && order !== "desc") {
+    order = "asc";
+  }
+  // order query 매개변수가 desc에서 btn 누르면 asc로 변경
+  if (order === "desc") {
+    nextOrder = "asc";
+  }
+
   // filePath에서 fileData json.parse 통해 읽어오기 /util/restaurant-data.js
   const restaurants = restaurantData.getStoredRestaurants();
+
+  // 식당이름 사전편찬식으로 정렬 | 1: B-A -1: A-B
+  restaurants.sort(function (restaurantA, restaurantB) {
+    if (
+        (order === "asc" && restaurantA.name > restaurantB.name) ||
+        (order === "desc" && restaurantA.name < restaurantB.name)
+    ){
+      return 1;
+    }
+    return -1;
+  });
 
   res.render("restaurants", {
     numberOfRestaurants: restaurants.length,
     restaurants: restaurants,
+    nextOrder: nextOrder
   });
 });
 // 동적 라우트
